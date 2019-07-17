@@ -15,12 +15,16 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include,re_path
+import xadmin
+from users.views import index
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    #path('admin/', admin.site.urls),
+    path('xadmin/',xadmin.site.urls),
     re_path(r'^users/',include(('users.urls','users'),namespace='users')),
     re_path(r'^courses/',include(('courses.urls','courses'),namespace='courses')),
     re_path(r'^orgs/',include(('orgs.urls','orgs'),namespace='orgs')),
     re_path(r'^operations/',include(('operations.urls','operations'),namespace='operations')),
+    re_path(r'^$',index,name='index')
 
 ]

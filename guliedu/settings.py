@@ -43,9 +43,13 @@ INSTALLED_APPS = [
     'courses',
     'orgs',
     'operations',
+    #下面两个是管理站点相关的第三方app
     'xadmin',
     'crispy_forms',
     #如果我们用users.apps.UsersConfig的方式注册，站点app名汉化的时候就方便了
+    #下面是验证码相关的第三方app
+    'captcha',
+
 ]
 
 #声明继承关系
@@ -134,10 +138,20 @@ USE_TZ = False
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
+#这是静态文件(css,js等)的路径
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR,'static'),
 ]
 
+#这是存放一些上传的媒体文件的文件夹
 MEDIA_URL = '/static/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR,'static/media')
+
+#配置用于发送邮件的邮箱
+EMAIL_HOST='smtp.qq.com'
+EMAIL_PORT=25
+EMAIL_HOST_USER='2276810913@qq.com'
+EMAIL_HOST_PASSWORD='andwtluzacrndidj'
+EMAIL_USE_TLS=True
+EMAIL_FROM='2276810913@qq.com'

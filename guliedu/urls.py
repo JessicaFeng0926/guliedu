@@ -25,6 +25,8 @@ urlpatterns = [
     re_path(r'^courses/',include(('courses.urls','courses'),namespace='courses')),
     re_path(r'^orgs/',include(('orgs.urls','orgs'),namespace='orgs')),
     re_path(r'^operations/',include(('operations.urls','operations'),namespace='operations')),
-    re_path(r'^$',index,name='index')
+    re_path(r'^$',index,name='index'),
+    #给验证码app captcha也分发路由,它不需要app名字也不需要namespace,加了多余的东西会报错
+    re_path(r'^captcha/',include('captcha.urls'))
 
 ]

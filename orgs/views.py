@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from . models import OrgInfo,CityInfo,TeacherInfo
+from operations.models import UserLove
 from django.core.paginator import Paginator,PageNotAnInteger,EmptyPage
 
 # Create your views here.
@@ -16,7 +17,7 @@ def org_list(request):
     #从第二次开始，这个参数就会变成字符串的None，因为是从模板那边接收过来的
     #还有一个简单的方法，就是category=request.GET.get('category',''),这样当取不到值的时候，默认值会一直是空字符串，不存在None和'None'的问题
     if category =='None' or category == None:
-        print(type(category))
+        pass
     else:
         all_orgs=all_orgs.filter(category=category)
 
@@ -47,4 +48,66 @@ def org_list(request):
 
 
     #category也要传回去，跟分页的参数拼接到一起，不然会乱
-    return render(request,'org-list.html',{'all_orgs':all_orgs,'all_cities':all_cities,'sort_orgs':sort_orgs,'current_page':current_page,'category':category,'cityid':cityid,'sort':sort})
+    return render(request,'orgs/org-list.html',{'all_orgs':all_orgs,'all_cities':all_cities,'sort_orgs':sort_orgs,'current_page':current_page,'category':category,'cityid':cityid,'sort':sort})
+
+
+def org_detail(request,org_id):
+    '''这是机构详情主页的视图'''
+    if org_id:
+        org=OrgInfo.objects.filter(id=int(org_id))[0]
+        #在返回页面机构的时候也需要返回对本机构的收藏状态，这样才能根据实际情况显示收藏或者取消收藏，这里不能是死数据
+        love_status=False
+        if request.user.is_authenticated:
+            love=UserLove.objects.filter(love_man=request.user,love_id=org.id,love_type=1,love_status=True)
+            if love:
+                love_status=True
+        #传回一个detail_type数据是为了给css跟随提供判断依据
+        return render(request,'orgs/org-detail-homepage.html',{'org':org,'detail_type':'home','love_status':love_status})
+
+def org_detail_course(request,org_id):
+    '''这是机构详情的课程页的视图'''
+    if org_id:
+        org=OrgInfo.objects.filter(id=int(org_id))[0]
+        all_courses=org.courseinfo_set.all()
+        #实例化分页器
+        pa=Paginator(all_courses,4)
+        pagenum=request.GET.get('pagenum')
+        try:
+            current_page=pa.get_page(pagenum)
+        except PageNotAnInteger:
+            current_page=pa.get_page(1)
+        except EmptyPage:
+            current_page=pa.get_page(pa.num_pages)
+        #在返回页面机构的时候也需要返回对本机构的收藏状态，这样才能根据实际情况显示收藏或者取消收藏，这里不能是死数据
+        love_status=False
+        if request.user.is_authenticated:
+            love=UserLove.objects.filter(love_man=request.user,love_id=org.id,love_type=1,love_status=True)
+            if love:
+                love_status=True
+
+        return render(request,'orgs/org-detail-course.html',{'org':org,'current_page':current_page,'detail_type':'course','love_status':love_status})
+
+
+def org_detail_desc(request,org_id):
+    '''这是机构详情之机构介绍页面的视图'''
+    if org_id:
+        org=OrgInfo.objects.filter(id=int(org_id))[0]
+        #在返回页面机构的时候也需要返回对本机构的收藏状态，这样才能根据实际情况显示收藏或者取消收藏，这里不能是死数据
+        love_status=False
+        if request.user.is_authenticated:
+            love=UserLove.objects.filter(love_man=request.user,love_id=org.id,love_type=1,love_status=True)
+            if love:
+                love_status=True
+        return render(request,'orgs/org-detail-desc.html',{'org':org,'detail_type':'desc','love_status':love_status})
+
+def org_detail_teacher(request,org_id):
+    '''这是机构详情之教师页面的视图'''
+    if org_id:
+        org=OrgInfo.objects.filter(id=int(org_id))[0]
+        #在返回页面机构的时候也需要返回对本机构的收藏状态，这样才能根据实际情况显示收藏或者取消收藏，这里不能是死数据
+        love_status=False
+        if request.user.is_authenticated:
+            love=UserLove.objects.filter(love_man=request.user,love_id=org.id,love_type=1,love_status=True)
+            if love:
+                love_status=True
+        return render(request,'orgs/org-detail-teachers.html',{'org':org,'detail_type':'teacher','love_status':love_status})

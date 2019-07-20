@@ -16,7 +16,7 @@ def user_register(request):
     if request.method=='GET':
         #这里把表单类的实例返回去是为了用验证码
         user_register_from=UserRegisterForm()
-        return render(request,'register.html',{'user_register_form':user_register_from})
+        return render(request,'users/register.html',{'user_register_form':user_register_from})
     else:
         user_register_form=UserRegisterForm(request.POST)
         if user_register_form.is_valid():
@@ -44,7 +44,7 @@ def user_register(request):
 def user_login(request):
     '''这是用户登录的视图'''
     if request.method=='GET':
-        return render(request,'login.html')
+        return render(request,'users/login.html')
     else:
         user_login_form=UserLoginForm(request.POST)
         if user_login_form.is_valid():
@@ -63,10 +63,10 @@ def user_login(request):
                     return HttpResponse('请去您的邮箱激活您的账号,否则无法登录')
             #验证未通过
             else:
-                return render(request,'login.html',{'msg':'邮箱或者密码有误'})
+                return render(request,'users/login.html',{'msg':'邮箱或者密码有误'})
         #如果邮箱密码填写格式不对
         else:
-            return render(request,'login.html',{'user_login_form':user_login_form})
+            return render(request,'users/login.html',{'user_login_form':user_login_form})
 
 def user_logout(request):
     '''这是用户退出的视图'''
@@ -111,15 +111,15 @@ def user_forget(request):
                 send_email_code(email,2)
                 return HttpResponse('请尽快去您的邮箱重置密码')
             else:
-                return render(request,'forgetpwd.html',{'msg':'用户不存在'})
+                return render(request,'users/forgetpwd.html',{'msg':'用户不存在'})
         else:
-            return render(request,'forgetpwd.html',{'user_forget_form':user_forget_form})
+            return render(request,'users/forgetpwd.html',{'user_forget_form':user_forget_form})
 
 def user_reset(request,code):
     '''这是修改密码的视图'''
     if code:
         if request.method=='GET':
-            return render(request,'password_reset.html',{'code':code})
+            return render(request,'users/password_reset.html',{'code':code})
         else:
             user_reset_form=UserResetForm(request.POST)
             if user_reset_form.is_valid():
@@ -144,10 +144,10 @@ def user_reset(request,code):
                         pass
                 #如果输入的两个密码不一致
                 else:
-                    return render(request,'password_reset.html',{'msg':'两次密码不一致','code':code})
+                    return render(request,'users/password_reset.html',{'msg':'两次密码不一致','code':code})
             #如果用户输入的格式错误
             else:
-                return render(request,'password_reset.html',{'user_reset_form':user_reset_form})
+                return render(request,'users/password_reset.html',{'user_reset_form':user_reset_form})
 
             
 

@@ -55,16 +55,20 @@
 									{% endif %}
 								</span></li>
 								<li class="piclist"><span class="pram word4">学习用户：</span>
-									
-										<span class="pic"><img width="40" height="40" src="../images/touxiang.jpg"/></span>
-									
+									    {% for usercourse in course.usercourse_set.all|slice:":6" %}
+										<span class="pic"><img width="40" height="40" src="{{MEDIA_URL}}{{usercourse.study_man.image}}"/></span>
+									    {% endfor %}
 								</li>
 							</ul>
 							<div class="btns">
 								<div class="btn colectgroupbtn"  id="jsLeftBtn">
-									  收藏
+									{% if love_course_status %}
+                                    取消收藏
+									{% else %}
+                                    收藏
+									{% endif %}
 								</div>
-									<div class="buy btn"><a style="color: white" href="course-video.html">开始学习</a></div>
+									<div class="buy btn"><a style="color: white" href="{% url 'courses:course_video' course.id %}">开始学习</a></div>
 							</div>
 						</div>
 					</div>
@@ -83,7 +87,11 @@
 						</a>
 						<div class="btn  notlogin
 							 "data-favid="14" id="jsRightBtn">
-							 已收藏
+							 {% if love_org_status %}
+                             取消收藏
+							 {% else %}
+                            收藏
+							 {% endif %}
 						</div>
 						<div class="clear">
 							<ul>
@@ -147,3 +155,53 @@
 {% endblock content %}
 
 
+{% block myjs %}
+<script>
+$(function(){
+    $('#jsLeftBtn').click(function(){
+       var love_id="{{course.id}}";
+	   var love_type=2;
+	   $.ajax({
+		   type:'GET',
+		   url:'{% url "operations:user_love" %}',
+		   data:{
+           "love_id":love_id,
+		   "love_type":love_type,
+		   },
+		   success:function(callback){
+              if(callback.status=='ok'){
+                $('#jsLeftBtn').text(callback.msg)
+			  }//if的结尾
+			  else{
+				  alert(callback.msg)
+			  } //else的结尾
+		   }//success的结尾
+	   }) // ajax的结尾
+	}) //click的结尾
+
+	$('#jsRightBtn').click(function(){
+       var love_id="{{course.orginfo.id}}";
+	   var love_type=1;
+	   $.ajax({
+		   type:'GET',
+		   url:'{% url "operations:user_love" %}',
+		   data:{
+           "love_id":love_id,
+		   "love_type":love_type,
+		   },
+		   success:function(callback){
+              if(callback.status=='ok'){
+                $('#jsRightBtn').text(callback.msg)
+			  }
+			  else{
+				  alert(callback.msg)
+			  }//else的结尾
+		   }//success的结尾
+	   })//ajax的结尾
+
+	})//click的结尾
+    
+}) //最外面的function的结尾
+</script>
+
+{% endblock myjs %}

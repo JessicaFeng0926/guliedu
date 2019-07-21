@@ -111,3 +111,25 @@ def org_detail_teacher(request,org_id):
             if love:
                 love_status=True
         return render(request,'orgs/org-detail-teachers.html',{'org':org,'detail_type':'teacher','love_status':love_status})
+
+def teacher_list(request):
+    '''这是教师列表页的视图'''
+    all_teachers=TeacherInfo.objects.all()
+
+    #下面是根据人气排序
+    sort=request.GET.get('sort','')
+    if sort:
+        all_teachers=all_teachers.order_by('-'+sort)
+
+    #下面是分页器
+    pa=Paginator(all_teachers,2)
+    pagenum=request.GET.get('pagenum','')
+    try:
+        current_page=pa.get_page(pagenum)
+    except PageNotAnInteger:
+        current_page=pa.get_page(1)
+    except EmptyPage:
+        current_page=pa.get_page(pa.num_pages)
+    #下面是讲师排行榜的数据，根据收藏数排行
+    teacher_board=all_teachers.order_by('-love_num')[:2]
+    return render(request,'orgs/teachers-list.html',{'all_teachers':all_teachers,'teacher_board':teacher_board,'current_page':current_page,'sort':sort})

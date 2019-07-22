@@ -55,6 +55,9 @@ def org_detail(request,org_id):
     '''这是机构详情主页的视图'''
     if org_id:
         org=OrgInfo.objects.filter(id=int(org_id))[0]
+        #只要进了这个机构的详情页，这个机构的访问量就需要加一
+        org.click_num+=1
+        org.save()
         #在返回页面机构的时候也需要返回对本机构的收藏状态，这样才能根据实际情况显示收藏或者取消收藏，这里不能是死数据
         love_status=False
         if request.user.is_authenticated:
@@ -133,3 +136,28 @@ def teacher_list(request):
     #下面是讲师排行榜的数据，根据收藏数排行
     teacher_board=all_teachers.order_by('-love_num')[:2]
     return render(request,'orgs/teachers-list.html',{'all_teachers':all_teachers,'teacher_board':teacher_board,'current_page':current_page,'sort':sort})
+
+def teacher_detail(request,teacher_id):
+    '''这是教师详情页的视图'''
+    if teacher_id:
+        teacher=TeacherInfo.objects.filter(id=int(teacher_id))[0]
+
+        #只要点进了老师的详情页，这个老师的点击量就加1
+        teacher.click_num+=1
+        teacher.save()
+
+        #下面是获取教师排行榜的
+        all_teachers=TeacherInfo.objects.all()
+        teacher_board=all_teachers.order_by('-love_num')
+
+        #下面是该教师收藏状态的数据
+        teacher_love_status=False
+        teacher_love=UserLove.objects.filter(love_id=teacher.id,love_type=3,love_man=request.user,love_status=True)
+        if teacher_love:
+            teacher_love_status=True
+        #下面是该页面的机构收藏状态的数据
+        org_love_status=False
+        org_love=UserLove.objects.filter(love_id=teacher.work_company.id,love_type=1,love_man=request.user,love_status=True)
+        if org_love:
+            org_love_status=True
+        return render(request,'orgs/teacher-detail.html',{'teacher':teacher,'teacher_board':teacher_board,'teacher_love_status':teacher_love_status,'org_love_status':org_love_status})

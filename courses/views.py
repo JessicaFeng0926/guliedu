@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from . models import CourseInfo
+from orgs.models import OrgInfo
 from operations.models import UserLove,UserCourse,UserComment
 from django.core.paginator import Paginator,PageNotAnInteger,EmptyPage
 
@@ -36,8 +37,11 @@ def course_list(request):
 def course_detail(request,course_id):
     '''这是课程详情页面的视图'''
     if course_id:
-        print(course_id)
         course=CourseInfo.objects.filter(id=int(course_id))[0]
+
+        #只要点进了课程的详情页，就把该课程的点击量加一
+        course.click_num+=1
+        course.save()
         #下面是看看课程和机构有没有收藏
         love_course_status=False
         love_org_status=False
@@ -61,6 +65,24 @@ def course_video(request,course_id):
         #只要用户点击了开始学习按钮，就要把它添加到UserCourse表里，但要先检查一下是否已经添加过了
         usercourse_list=UserCourse.objects.filter(study_man=request.user,study_course=course)
         if not usercourse_list:
+            
+            #给课程的学习人数增加1
+            course.study_num+=1
+            course.save()
+            #给课程所属的机构的学习人数加一(前提是这个用户没学过这个机构的任何课程)
+            #第一步，查找当前用户学习的所有课程
+            usercourse_list=UserCourse.objects.filter(study_man=request.user)
+            print(usercourse_list)
+            course_list=[usercourse.study_course for usercourse in usercourse_list]
+            print(course_list)
+            #第二步，判断这些课程是否都不是这个机构的
+            org_list=list(set([ c.orginfo for c in course_list]))
+            print(org_list)
+            if course.orginfo not in org_list:
+                course.orginfo.study_num+=1
+                course.orginfo.save()
+            
+            #必须最后存入UserCourse表，否则跟前面的机构的逻辑矛盾（新增的课程就是这个机构，那么就不需要再给机构加学习人数了）
             usercourse=UserCourse()
             usercourse.study_man=request.user
             usercourse.study_course=course

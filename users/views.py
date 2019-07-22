@@ -1,9 +1,10 @@
 from django.shortcuts import render,redirect,reverse,HttpResponse
-from . forms import UserRegisterForm,UserLoginForm,UserForgetForm,UserResetForm
+from . forms import UserRegisterForm,UserLoginForm,UserForgetForm,UserResetForm,UserChangeimageForm,UserChangeinfoForm
 from . models import UserProfile,EmailVerifyCode
 from django.db.models import Q
 from django.contrib.auth import authenticate,login,logout
 from utils.send_mail_tool import send_email_code
+from django.http import JsonResponse
 
 # Create your views here.
 def index(request):
@@ -149,7 +150,35 @@ def user_reset(request,code):
             else:
                 return render(request,'users/password_reset.html',{'user_reset_form':user_reset_form})
 
-            
+def user_info(request):
+    '''这是用户个人中心首页的视图'''
+    return render(request,'users/usercenter-info.html')     
+
+def user_changeimage(request):
+    '''这是用户修改头像的视图'''
+    #因为传过来的是图片，所以这里还要写第二个参数request.FILES
+    #因为已经传入了一个已经存在的实例，所以不会创建新用户，而是修改老用户的头像
+    user_changeimage_form=UserChangeimageForm(request.POST,request.FILES,instance=request.user)
+    if user_changeimage_form.is_valid():
+        user_changeimage_form.save(commit=True)
+        return JsonResponse({'status':'ok'})
+    else:
+        return JsonResponse({'status':'fail'})
+
+def user_changeinfo(request):
+    '''这是用户普通信息修改的视图'''
+    user_changeinfo_form=UserChangeinfoForm(request.POST,instance=request.user)
+    if user_changeinfo_form.is_valid():
+        user_changeinfo_form.save(commit=True)
+        return JsonResponse({'status':'ok','msg':'修改成功'})
+    else:
+        return JsonResponse({'status':'fail','msg':'修改失败'})
+
+
+    
+
+    
+
 
 
 

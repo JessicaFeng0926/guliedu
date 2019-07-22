@@ -13,4 +13,6 @@ urlpatterns=[
     re_path(r'^org_detail_teacher/(\d+)/$',views.org_detail_teacher,name='org_detail_teacher'),
     #下面是授课教师的列表页路由
     re_path(r'^teacher_list/$',views.teacher_list,name='teacher_list'),
+    #下面是授课教师详情页的路由
+    re_path(r'^teacher_detail/(\d+)/$',views.teacher_detail,name='teacher_detail'),
 ]

@@ -1,5 +1,5 @@
 from django import forms
-from . models import UserAsk
+from . models import UserAsk,UserComment
 import re
 
 #ModelForm比Form还高级,不需要单独写验证规则，直接用model的规则就行了
@@ -20,3 +20,17 @@ class UserAskForm(forms.ModelForm):
         #如果手机号不合法，就抛出异常
         else:
             raise forms.ValidationError('手机号码不合法')
+
+class UserCommentForm(forms.ModelForm):
+    '''这是用户评论的表单类'''
+    class Meta:
+        model=UserComment
+        fields=['comment_content']
+    def clean_course_id(self):
+        '''这个用于验证传过来的课程id是否合法'''
+        comment_course_id=self.cleaned_data['comment_course_id']
+        com=re.compile(r'^\d+$')
+        if com.match(course_id):
+            return comment_course_id
+        else:
+            return forms.ValidationError('课程id不合法') 

@@ -1,5 +1,6 @@
 from django import forms
 from captcha.fields import CaptchaField
+from . models import UserProfile
 
 class UserRegisterForm(forms.Form):
     '''这是用户注册表单类'''
@@ -40,4 +41,16 @@ class UserResetForm(forms.Form):
     'required':'密码必须填写',
     'min_length':'密码至少3位',
     'max_length':'密码不能超过15位'})
+
+class UserChangeimageForm(forms.ModelForm):
+    '''这是用户修改头像的表单类'''
+    class Meta:
+        model = UserProfile
+        fields=['image']
+
+class UserChangeinfoForm(forms.ModelForm):
+    '''这是用户修改普通信息的表单类'''
+    class Meta:
+        model=UserProfile
+        fields=['nickname','birthday','gender','address','phone']
 

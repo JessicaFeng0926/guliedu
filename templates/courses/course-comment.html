@@ -76,6 +76,7 @@
                     <div id="js-pub-container" class="issques clearfix js-form">
                         <div class="wgt-ipt-wrap pub-editor-wrap " id="js-pl-input-fake">
                             <textarea id="js-pl-textarea" class="" placeholder="扯淡、吐槽、表扬、鼓励……想说啥就说啥！" ></textarea>
+                            {% csrf_token %}
                         </div>
                         <input type="button" id="js-pl-submit" class="pub-btn" data-cid="452" value="发表评论">
                         <p class="global-errortip js-global-error"></p>
@@ -119,11 +120,11 @@
                         <div class="box mb40">
                         <h4>讲师提示</h4>
                         <div class="teacher-info">
-                            <a href="/u/315464/courses?sort=publish" target="_blank">
+                            <a href="{% url 'orgs:teacher_detail' course.teacherinfo.id%}" target="_blank">
                                 <img src='{{MEDIA_URL}}{{course.teacherinfo.image}}' width='80' height='80' />
                             </a>
         <span class="tit">
-          <a href="/u/315464/courses?sort=publish" target="_blank">{{course.teacherinfo.name}}</a>
+          <a href="{% url 'orgs:teacher_detail' course.teacherinfo.id %}" target="_blank">{{course.teacherinfo.name}}</a>
         </span>
                             <span class="job">{{course.teacherinfo.work_position}}</span>
                         </div>
@@ -175,9 +176,31 @@
 {% block myjs %}
 <script>
 $(function(){
+   $('#js-pl-submit').click(function(){
+    var comment_content = $('#js-pl-textarea').val();
+    var comment_course_id = "{{course.id}}";
+    $.ajax({
+        type:'POST',
+        url:"{% url 'operations:user_comment' %}",
+        data:{
+            comment_content:comment_content,
+            comment_course_id:comment_course_id,
+            csrfmiddlewaretoken:"{{csrf_token}}",
+        },
+        success:function(callback){
+            if(callback.status=='ok'){
+                alert(callback.msg);
+                //刷新页面
+                window.location.reload();
+            }
+            else{
+                alert(callback.msg);
+            }
+        }//这是success的结尾
 
+    })//这是ajax的结尾
 
-
+   })//这是click的结尾
 })//这是最外面的function的结尾
 </script>
 {% endblock myjs %}

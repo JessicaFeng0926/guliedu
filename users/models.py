@@ -20,6 +20,13 @@ class UserProfile(AbstractUser):
         '''这是返回的描述'''
         return self.username
 
+    def get_msg_counter(self):
+        '''这是计算目前有多少未读消息的方法，用于显示在每个页面上面的喇叭处'''
+        from operations.models import UserMessage
+        counter=UserMessage.objects.filter(message_man=self.id,message_status=False).count()
+        return counter
+
+
     class Meta:
         '''元信息类'''
         verbose_name='用户信息'

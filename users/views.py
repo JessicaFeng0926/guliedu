@@ -1,15 +1,23 @@
 from django.shortcuts import render,redirect,reverse,HttpResponse
-from . forms import UserRegisterForm,UserLoginForm,UserForgetForm,UserResetForm,UserChangeimageForm,UserChangeinfoForm
-from . models import UserProfile,EmailVerifyCode
+from . forms import UserRegisterForm,UserLoginForm,UserForgetForm,UserResetForm,UserChangeimageForm,UserChangeinfoForm,UserChangeemailForm,UserResetemailForm
+from . models import UserProfile,EmailVerifyCode,BannerInfo
+from operations.models import UserCourse,UserLove,UserMessage
+from orgs.models import OrgInfo,TeacherInfo
+from courses.models import CourseInfo
 from django.db.models import Q
 from django.contrib.auth import authenticate,login,logout
 from utils.send_mail_tool import send_email_code
 from django.http import JsonResponse
+from datetime import datetime
 
 # Create your views here.
 def index(request):
     '''这是主页的视图'''
-    return render(request,'index.html')
+    all_banners=BannerInfo.objects.all().order_by('-add_time')[:5]
+    banner_courses=CourseInfo.objects.filter(is_banner=True)[:3]
+    all_courses=CourseInfo.objects.filter(is_banner=False)[:6]
+    all_orgs=OrgInfo.objects.all()[:15]
+    return render(request,'index.html',{'all_banners':all_banners,'banner_courses':banner_courses,'all_courses':all_courses,'all_orgs':all_orgs})
 
 
 def user_register(request):
@@ -59,6 +67,11 @@ def user_login(request):
                 #已经被激活的用户可以登录
                 if user.is_start:
                     login(request,user)
+                    #用户每次登录成功，就给他发一个系统消息，欢迎他登录
+                    msg=UserMessage()
+                    msg.message_man=user.id
+                    msg.message_content='欢迎登录。'
+                    msg.save()
                     return redirect(reverse('index'))
                 else:
                     return HttpResponse('请去您的邮箱激活您的账号,否则无法登录')
@@ -174,14 +187,95 @@ def user_changeinfo(request):
     else:
         return JsonResponse({'status':'fail','msg':'修改失败'})
 
+def user_changeemail(request):
+    '''
+    这是用户修改邮箱的视图。当用户修改邮箱点击获取验证码的时候，会通过这个视图处理，发送邮箱验证码。
+    :param request:http请求对象
+    :return 返回json数据，在模板页面中处理
+    '''
+    user_changeemail_form=UserChangeemailForm(request.POST)
+    if user_changeemail_form.is_valid():
+        email=user_changeemail_form.cleaned_data['email']
+        #看看这个邮箱是否已经被占用
+        user_list=UserProfile.objects.filter(Q(email=email)|Q(username=email))
+        if user_list:
+            return JsonResponse({'status':'fail','msg':'邮箱已经被绑定'})
+        else:
+            #查看验证码表中是否已经给这个邮箱发送过send_type为3的邮件
+            email_ver_list=EmailVerifyCode.objects.filter(email=email,send_type=3)
+            if email_ver_list:
+                #如果发送过，找到最近发送的那一条记录
+                email_ver=email_ver_list.order_by('-add_time')[0]
+                #判断当前时间和最近发送的验证码添加时间之差
+                if (datetime.now()-email_ver.add_time).seconds > 60:
+                    send_email_code(email,3)
+                    #因为已经发了新的，所以旧的就可以删除了
+                    email_ver.delete()
+                    return JsonResponse({'status':'ok','msg':'请尽快去邮箱中获取验证码'})
+                else:
+                    return JsonResponse({'status':'fail','msg':'请不要重复发送验证码，1分钟后重试'})
+            #如果从来没有发送过这种验证码，就直接发送
+            else:
+                send_email_code(email,3)
+                return JsonResponse({'status':'ok','msg':'请尽快去邮箱中获取验证码'})
+    else:
+        return JsonResponse({'status':'fail','msg':'您的邮箱有误，请查证。'})
 
+def user_resetemail(request):
+    '''
+    这是用户完成修改邮箱的视图。
+    param:request http请求
+    return json数据
+    '''
+    user_resetemail_form=UserResetemailForm(request.POST)
+    if user_resetemail_form.is_valid():
+        email=user_resetemail_form.cleaned_data['email']
+        code=user_resetemail_form.cleaned_data['code']
+        email_ver_list=EmailVerifyCode.objects.filter(email=email,code=code)
+        if email_ver_list:
+            email_ver=email_ver_list[0]
+            #判断这个验证码是否还在有效期
+            if (datetime.now()-email_ver.add_time).seconds < 300:
+                request.user.username=email
+                request.user.email=email
+                request.user.save()
+                return JsonResponse({'status':'ok','msg':'邮箱修改成功'})
+            else:
+                return JsonResponse({'status':'fail','msg':'验证码失效，请重新发送验证码'})
+        else:
+            return JsonResponse({'status':'fail','msg':'您的邮箱或者验证码有误'})
+    else:
+        return JsonResponse({'status':'fail','msg':'您的邮箱或者验证码不合法'})
+
+
+def user_course(request):
+    '''这是用户中心我的课程的视图'''
+    usercourse_list=request.user.usercourse_set.all()
+    course_list=[ usercourse.study_course for usercourse in usercourse_list]
+    return render(request,'users/usercenter-mycourse.html',{'course_list':course_list})
     
+def user_loveorg(request):
+    '''这是用户中心的用户收藏的默认视图'''
+    userloveorg_list=UserLove.objects.filter(love_man=request.user,love_type=1,love_status=True)
+    orgid_list=[userloveorg.love_id for userloveorg in userloveorg_list]
+    org_list=OrgInfo.objects.filter(id__in=orgid_list)
+    return render(request,'users/usercenter-fav-org.html',{'org_list':org_list})
 
-    
+def user_loveteacher(request):
+    '''下面是用户中心的用户收藏之收藏老师的视图'''
+    userloveteacher_list=UserLove.objects.filter(love_man=request.user,love_type=3,love_status=True)
+    teacherid_list=[userloveteacher.love_id for userloveteacher in userloveteacher_list]
+    teacher_list=TeacherInfo.objects.filter(id__in=teacherid_list)
+    return render(request,'users/usercenter-fav-teacher.html',{'teacher_list':teacher_list})
 
+def user_lovecourse(request):
+    '''这是用户中心的用户收藏之收藏课程的视图'''
+    userlovecourse_list=UserLove.objects.filter(love_man=request.user,love_type=2,love_status=True)
+    courseid_list=[ userlovecourse.love_id for userlovecourse in userlovecourse_list]
+    course_list=CourseInfo.objects.filter(id__in=courseid_list)
+    return render(request,'users/usercenter-fav-course.html',{'course_list':course_list})
 
-
-
-
-
-
+def  user_message(request):
+    '''这是用户中心的用户消息视图'''
+    msg_list=UserMessage.objects.filter(message_man=request.user.id)
+    return render(request,'users/usercenter-message.html',{'msg_list':msg_list})

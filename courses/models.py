@@ -20,6 +20,7 @@ class CourseInfo(models.Model):
     teacher_tell=models.CharField(max_length=100,verbose_name='老师教导')
     orginfo=models.ForeignKey(OrgInfo,verbose_name='所属机构',on_delete=models.CASCADE)
     teacherinfo=models.ForeignKey(TeacherInfo,verbose_name='所属讲师',on_delete=models.CASCADE)
+    is_banner=models.BooleanField(default=False,verbose_name='是否轮播')
     add_time=models.DateTimeField(auto_now_add=True,verbose_name='添加时间')
 
     def __str__(self):

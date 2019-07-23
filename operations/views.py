@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from . forms import UserAskForm,UserCommentForm
 from django.http import JsonResponse
-from . models import UserLove,UserComment
+from . models import UserLove,UserComment,UserMessage
 from courses.models import CourseInfo
 from orgs.models import OrgInfo,TeacherInfo
 
@@ -77,6 +77,36 @@ def user_comment(request):
         return JsonResponse({'status':'ok','msg':'评论成功'})
     else:
         return JsonResponse({'status':'fail','msg':'评论失败'})
+
+def user_deletelove(request):
+    '''这是用户在个人中心删除收藏的视图'''
+    love_id=request.GET.get('love_id','')
+    love_type=request.GET.get('love_type','')
+    if love_id and love_type:
+        love=UserLove.objects.filter(love_id=int(love_id),love_type=int(love_type),love_status=True)
+        if love:
+            love[0].love_status=False
+            love[0].save()
+            return JsonResponse({'status':'ok','msg':'取消成功'})
+        else:
+            return JsonResponse({'status':'fail','msg':'取消失败'})
+    else:
+        return JsonResponse({'status':'fail','msg':'取消失败'})
+
+def user_deletemessage(request):
+    '''这是用户在个人中心阅读消息的视图'''
+    msg_id=request.GET.get('msg_id','')
+    if msg_id:
+        msg_list=UserMessage.objects.filter(id=int(msg_id))
+        if msg_list:
+            msg=msg_list[0]
+            msg.message_status=True
+            msg.save()
+            return JsonResponse({'status':'ok','msg':'已读'})
+        else:
+            return JsonResponse({'status':'fail','msg':'读取失败'})
+    else:
+        return JsonResponse({'status':'fail','msg':'读取失败'})
 
         
 

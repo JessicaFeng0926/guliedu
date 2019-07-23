@@ -31,11 +31,11 @@
 	<div class="wp list personal_list">
 	<div class="left">
         <ul>
-            <li class="active2"><a href="usercenter-info.html">个人资料</a></li>
-            <li ><a href="usercenter-mycourse.html">我的课程</a></li>
-            <li ><a href="usercenter-fav-course.html">我的收藏</a></li>
-            <li >
-                <a href="usercenter-message.html" style="position: relative;">
+            <li {% if request.path == '/users/user_info/' %}class="active2"{% endif %}><a href="{% url 'users:user_info' %}">个人资料</a></li>
+            <li {% if request.path == '/users/user_course/' %}class='active2'{% endif %}><a href="{% url 'users:user_course' %}">我的课程</a></li>
+            <li {% if request.path|slice:':16' == '/users/user_love' %}class='active2'{% endif %}><a href="{% url 'users:user_loveorg' %}">我的收藏</a></li>
+            <li {% if request.path == '/users/user_message/'%}class='active2'{% endif %}>
+                <a href="{% url 'users:user_message' %}" style="position: relative;">
                     我的消息
                 </a>
             </li>
@@ -77,17 +77,18 @@
         <h1>修改邮箱</h1>
         <div class="close jsCloseDialog"><img src="{% static 'images/dig_close.png' %}"/></div>
         <p>请输入新的邮箱地址</p>
-        <form id="jsChangeEmailForm" autocomplete="off">
+        <form id="jsChangeEmailForm" autocomplete="off" action="">
+            {% csrf_token %}
             <div class="box">
                 <input class="fl change_email" name="email" id="jsChangeEmail" type="text" placeholder="输入重新绑定的邮箱地址">
             </div>
             <div class="box">
                 <input class="fl email_code" type="text" id="jsChangeEmailCode" name="code" placeholder="输入邮箱验证码">
-                <input class="getcode getting" type="button" id="jsChangeEmailCodeBtn" value="获取验证码">
+                <input class="getcode getting" type="button" id="jsChangeEmailCodeBt" value="获取验证码">
             </div>
             <div class="error btns change_email_tips" id="jsChangeEmailTips" >请输入...</div>
             <div class="button">
-                <input class="changeemai_btn" id="jsChangeEmailBtn" type="button" value="完成"/>
+                <input class="changeemai_btn" id="jsChangeEmailBt" type="button" value="完成"/>
             </div>
             <input type='hidden' name='csrfmiddlewaretoken' value='DaP7IUKm9FA9nELA9YUlYYWpyIDdCiIP' />
         <input type='hidden' name='csrfmiddlewaretoken' value='799Y6iPeEDNSGvrTu3noBrO4MBLv6enY' />
@@ -103,7 +104,50 @@
 {% block myjs %} 
 <script src='{% static 'js/plugins/jquery.upload.js' %}' type='text/javascript'></script>
 <script src="{% static 'js/validate.js' %}" type="text/javascript"></script>
-<script src="{% static 'js/deco-user.js' %}"></script>
+
+<script>
+$(function(){
+    //下面是点击发送验证码的功能
+   $('#jsChangeEmailCodeBt').click(function(){
+       var email=$('#jsChangeEmail').val();
+       $.ajax({
+           type:'POST',
+           url:"{% url 'users:user_changeemail' %}",
+           data:{
+              email:email,
+              csrfmiddlewaretoken:"{{csrf_token}}",
+           },
+           success:function(callback){
+              alert(callback.msg)
+           }//这是success的结尾
+       })//这是ajax的结尾
+   })//这是click的结尾
+})//这是最外面的function的结尾
+
+    //下面是点击完成修改邮箱的功能
+    $('#jsChangeEmailBt').click(function(){
+        var email=$('#jsChangeEmail').val();
+        var code = $('#jsChangeEmailCode').val();
+        $.ajax({
+            type:'POST',
+            url:"{% url 'users:user_resetemail' %}",
+            data:{
+               email:email,
+               code:code,
+               csrfmiddlewaretoken:"{{csrf_token}}",
+            },
+            success:function(callback){
+                if(callback.status=='ok'){
+                    alert(callback.msg);
+                    window.location.href="{% url 'users:user_login' %}";
+                }
+                else{
+                    alert(callback.msg)
+                }
+            }
+        })
+    })//这是click的结尾
+</script>
 {% block myjs1 %}{% endblock myjs1 %}
 {% endblock myjs %}
 

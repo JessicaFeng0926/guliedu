@@ -62,14 +62,14 @@
                 
 
                             {% if current_page.has_previous %}
-                            <li class="long"><a href="?pagenum={{current_page.previous_page_number}}&sort={{sort}}">上一页</a></li>
+                            <li class="long"><a href="?pagenum={{current_page.previous_page_number}}&sort={{sort}}&keyword={{keyword}}">上一页</a></li>
                             {% endif %}
                             {% for pagenum in current_page.paginator.page_range %}
-                            <li {% if pagenum == current_page.number %}class='active'{% endif %}><a href="?pagenum={{pagenum}}&sort={{sort}}" class="page">{{pagenum}}</a></li>
+                            <li {% if pagenum == current_page.number %}class='active'{% endif %}><a href="?pagenum={{pagenum}}&sort={{sort}}&keyword={{keyword}}" class="page">{{pagenum}}</a></li>
                             {% endfor %}
                 
                            {% if current_page.has_next %}
-                           <li class="long"><a href="?pagenum={{current_page.next_page_number}}&sort={{sort}}">下一页</a></li>
+                           <li class="long"><a href="?pagenum={{current_page.next_page_number}}&sort={{sort}}&keyword={{keyword}}">下一页</a></li>
                            {% endif %}
 
             </ul>

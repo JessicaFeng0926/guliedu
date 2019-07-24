@@ -3,13 +3,20 @@ from . models import CourseInfo
 from orgs.models import OrgInfo
 from operations.models import UserLove,UserCourse,UserComment
 from django.core.paginator import Paginator,PageNotAnInteger,EmptyPage
-
+from django.db.models import Q
+from django.contrib.auth.decorators import login_required
+from utils.decorator import login_decorator
 # Create your views here.
 
 def course_list(request):
     '''这是公开课页面的视图'''
     all_courses=CourseInfo.objects.all()
     recommend_courses=all_courses.order_by('-add_time')[:3]
+
+    #下面是全局搜索过滤
+    keyword=request.GET.get('keyword','')
+    if keyword:
+        all_courses=all_courses.filter(Q(name__icontains=keyword)|Q(desc__icontains=keyword)|Q(detail__icontains=keyword))
 
     sort=request.GET.get('sort','')
     if sort:
@@ -32,6 +39,7 @@ def course_list(request):
     'recommend_courses':recommend_courses,
     'sort':sort,
     'all_courses':all_courses,
+    'keyword':keyword,
     })
 
 def course_detail(request,course_id):
@@ -58,6 +66,10 @@ def course_detail(request,course_id):
         return render(request,'courses/course-detail.html',{'course':course,'related_courses':related_courses,
         'love_course_status':love_course_status,'love_org_status':love_org_status})
 
+#@login_required(login_url='/users/user_login/')
+#django提供的装饰器不能满足我们的需求，我们要自己写装饰器
+
+@login_decorator
 def course_video(request,course_id):
     if course_id:
         course=CourseInfo.objects.filter(id=int(course_id))[0]

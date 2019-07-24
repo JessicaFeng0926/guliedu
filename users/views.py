@@ -9,15 +9,29 @@ from django.contrib.auth import authenticate,login,logout
 from utils.send_mail_tool import send_email_code
 from django.http import JsonResponse
 from datetime import datetime
+from django.views.generic import View
+
+class IndexView(View):
+    '''这是主页视图类'''
+    #get方法是必须实现的
+    def get(self,request):
+        all_banners=BannerInfo.objects.all().order_by('-add_time')[:5]
+        banner_courses=CourseInfo.objects.filter(is_banner=True)[:3]
+        all_courses=CourseInfo.objects.filter(is_banner=False)[:6]
+        all_orgs=OrgInfo.objects.all()[:15]
+        return render(request,'index.html',{'all_banners':all_banners,'banner_courses':banner_courses,'all_courses':all_courses,'all_orgs':all_orgs})
+    #如果主页也有post请求，就再写一个post方法
+    def post(self,request):
+        pass
 
 # Create your views here.
-def index(request):
+""" def index(request):
     '''这是主页的视图'''
     all_banners=BannerInfo.objects.all().order_by('-add_time')[:5]
     banner_courses=CourseInfo.objects.filter(is_banner=True)[:3]
     all_courses=CourseInfo.objects.filter(is_banner=False)[:6]
     all_orgs=OrgInfo.objects.all()[:15]
-    return render(request,'index.html',{'all_banners':all_banners,'banner_courses':banner_courses,'all_courses':all_courses,'all_orgs':all_orgs})
+    return render(request,'index.html',{'all_banners':all_banners,'banner_courses':banner_courses,'all_courses':all_courses,'all_orgs':all_orgs}) """
 
 
 def user_register(request):
@@ -50,7 +64,47 @@ def user_register(request):
         else:
             return render(request,'register.html',{'user_register_form':user_register_form})
 
-def user_login(request):
+class UserLoginView(View):
+    '''这是登录的视图类'''
+    def get(self,request):
+        return render(request,'users/login.html')
+    
+    def post(self,request):
+        user_login_form=UserLoginForm(request.POST)
+        if user_login_form.is_valid():
+            email=user_login_form.cleaned_data['email']
+            password=user_login_form.cleaned_data['password']
+            
+            #这个方法验证的就是username和password，不要换成别的字段
+            user=authenticate(username=email,password=password)
+            #邮箱和密码验证通过
+            if user:
+                #已经被激活的用户可以登录
+                if user.is_start:
+                    login(request,user)
+                    #用户每次登录成功，就给他发一个系统消息，欢迎他登录
+                    msg=UserMessage()
+                    msg.message_man=user.id
+                    msg.message_content='欢迎登录。'
+                    msg.save()
+                    #取出cookie里存放的url，这是我们来到登录页面前所在的页面，如果能取到值就原路返回，取不到值就去首页
+                    url=request.COOKIES.get('url','/')
+                    #获取我们要重定向到的页面的response对象，但是删除其中的cookie（为了避免以后每次都重定向到这个页面，尤其是ajax请求会受到影响）
+                    ret=redirect(url)
+                    ret.delete_cookie('url')
+                    return ret
+                else:
+                    return HttpResponse('请去您的邮箱激活您的账号,否则无法登录')
+            #验证未通过
+            else:
+                return render(request,'users/login.html',{'msg':'邮箱或者密码有误'})
+        #如果邮箱密码填写格式不对
+        else:
+            return render(request,'users/login.html',{'user_login_form':user_login_form})
+
+
+
+""" def user_login(request):
     '''这是用户登录的视图'''
     if request.method=='GET':
         return render(request,'users/login.html')
@@ -72,7 +126,12 @@ def user_login(request):
                     msg.message_man=user.id
                     msg.message_content='欢迎登录。'
                     msg.save()
-                    return redirect(reverse('index'))
+                    #取出cookie里存放的url，这是我们来到登录页面前所在的页面，如果能取到值就原路返回，取不到值就去首页
+                    url=request.COOKIES.get('url','/')
+                    #获取我们要重定向到的页面的response对象，但是删除其中的cookie（为了避免以后每次都重定向到这个页面，尤其是ajax请求会受到影响）
+                    ret=redirect(url)
+                    ret.delete_cookie('url')
+                    return ret
                 else:
                     return HttpResponse('请去您的邮箱激活您的账号,否则无法登录')
             #验证未通过
@@ -80,7 +139,7 @@ def user_login(request):
                 return render(request,'users/login.html',{'msg':'邮箱或者密码有误'})
         #如果邮箱密码填写格式不对
         else:
-            return render(request,'users/login.html',{'user_login_form':user_login_form})
+            return render(request,'users/login.html',{'user_login_form':user_login_form}) """
 
 def user_logout(request):
     '''这是用户退出的视图'''
@@ -279,3 +338,11 @@ def  user_message(request):
     '''这是用户中心的用户消息视图'''
     msg_list=UserMessage.objects.filter(message_man=request.user.id)
     return render(request,'users/usercenter-message.html',{'msg_list':msg_list})
+
+def handler_404(request):
+    '''这是404页面的视图'''
+    return render(request,'handler_404.html')
+
+def handler_500(request):
+    '''这是500页面的视图'''
+    return render(request,'handler_500.html')

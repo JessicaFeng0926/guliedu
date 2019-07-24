@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from . models import UserLove,UserComment,UserMessage
 from courses.models import CourseInfo
 from orgs.models import OrgInfo,TeacherInfo
+from utils.decorator import login_decorator
 
 # Create your views here.
 
@@ -17,7 +18,7 @@ def user_ask(request):
     else:
         return JsonResponse({'status':'fail','msg':'咨询失败'})
 
-
+@login_decorator
 def user_love(request):
     '''这是处理用户收藏的视图'''
     love_id=request.GET.get('love_id','')

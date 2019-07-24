@@ -10,7 +10,12 @@
         </div>
         <div class="des">
             
-            <p>{{org.detail}}</p>
+            <p>
+                {% autoescape off %}
+                {{org.detail}}
+                {% endautoescape %}
+                <!-- 这里也可以用过滤器|save来关闭转义 -->
+            </p>
             
         </div>
     </div>

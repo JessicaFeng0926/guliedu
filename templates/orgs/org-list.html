@@ -101,18 +101,18 @@
                 
                 <!--如果当前页有上一页，就显示上一页按钮,按就链接到上一页的页码-->
                 {%if current_page.has_previous %}
-                <li class="long"><a href="?pagenum={{current_page.previous_page_number}}&category={{category}}&cityid={{cityid}}&sort={{sort}}">上一页</a></li>  
+                <li class="long"><a href="?pagenum={{current_page.previous_page_number}}&category={{category}}&cityid={{cityid}}&sort={{sort}}&keyword={{keyword}}">上一页</a></li>  
                 {% endif %}
                 
                 <!-- 遍历页码范围迭代器对象，生成页码 -->
                 {% for num in current_page.paginator.page_range %}
                 <!-- 如果生成的页码和当前显示的页面的页码正好一样，就让这个页码有背景颜色 -->
-                <li {% if num == current_page.number %}class="active"{% endif %}><a href="?pagenum={{num}}&category={{category}}&cityid={{cityid}}&sort={{sort}}">{{num}}</a></li>
+                <li {% if num == current_page.number %}class="active"{% endif %}><a href="?pagenum={{num}}&category={{category}}&cityid={{cityid}}&sort={{sort}}&keyword={{keyword}}">{{num}}</a></li>
                 {% endfor %}
                 
                 <!-- 如果当前页有下一页，就显示下一页按钮 ,下一页按钮链接到下一个页码-->
                 {% if current_page.has_next %}
-                <li class="long"><a href="?pagenum={{current_page.next_page_number}}&category={{category}}&cityid={{cityid}}&sort={{sort}}">下一页</a></li>
+                <li class="long"><a href="?pagenum={{current_page.next_page_number}}&category={{category}}&cityid={{cityid}}&sort={{sort}}&keyword={{keyword}}">下一页</a></li>
                 {% endif %}
                 
 

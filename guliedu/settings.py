@@ -24,9 +24,9 @@ sys.path.insert(0,os.path.join(BASE_DIR,'extra_apps'))
 SECRET_KEY = '&xv4&6v0t)*&)))bw4$y&#eo5*dnhe7wq1x01_y3yutb=$3q1m'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     #如果我们用users.apps.UsersConfig的方式注册，站点app名汉化的时候就方便了
     #下面是验证码相关的第三方app
     'captcha',
+    #下面是富文本编辑器Ueditor
+    'DjangoUeditor',
 
 ]
 

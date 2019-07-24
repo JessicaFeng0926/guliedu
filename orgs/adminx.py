@@ -11,6 +11,8 @@ class OrgInfoXadmin(object):
     '''机构信息管理类'''
     list_display=['image','name','course_num','study_num','love_num','click_num','category','cityinfo']
     model_icon='fa fa-institution'
+    #告知xadmin哪个字段应用了ueidtor
+    style_fields={'detail':'ueditor'}
 
 class TeacherInfoXadmin(object):
     '''老师信息的管理类'''

@@ -2,7 +2,7 @@ from django.shortcuts import render
 from . models import OrgInfo,CityInfo,TeacherInfo
 from operations.models import UserLove
 from django.core.paginator import Paginator,PageNotAnInteger,EmptyPage
-
+from django.db.models import Q
 # Create your views here.
 
 def org_list(request):
@@ -10,6 +10,11 @@ def org_list(request):
     all_orgs=OrgInfo.objects.all()
     all_cities=CityInfo.objects.all()
     sort_orgs=all_orgs.order_by('-love_num')[:3]
+
+    #全局搜索功能过滤,要模糊查找
+    keyword=request.GET.get('keyword','')
+    if keyword:
+        all_orgs=all_orgs.filter(Q(name__icontains=keyword)|Q(desc__icontains=keyword)|Q(detail__icontains=keyword))
 
     #按照机构类别进行过滤
     category=request.GET.get('category')
@@ -48,7 +53,7 @@ def org_list(request):
 
 
     #category也要传回去，跟分页的参数拼接到一起，不然会乱
-    return render(request,'orgs/org-list.html',{'all_orgs':all_orgs,'all_cities':all_cities,'sort_orgs':sort_orgs,'current_page':current_page,'category':category,'cityid':cityid,'sort':sort})
+    return render(request,'orgs/org-list.html',{'all_orgs':all_orgs,'all_cities':all_cities,'sort_orgs':sort_orgs,'current_page':current_page,'category':category,'cityid':cityid,'sort':sort,'keyword':keyword})
 
 
 def org_detail(request,org_id):
@@ -119,6 +124,11 @@ def teacher_list(request):
     '''这是教师列表页的视图'''
     all_teachers=TeacherInfo.objects.all()
 
+    #下面是全局搜索过滤
+    keyword=request.GET.get('keyword','')
+    if keyword:
+        all_teachers=all_teachers.filter(name__icontains=keyword)
+
     #下面是根据人气排序
     sort=request.GET.get('sort','')
     if sort:
@@ -135,7 +145,7 @@ def teacher_list(request):
         current_page=pa.get_page(pa.num_pages)
     #下面是讲师排行榜的数据，根据收藏数排行
     teacher_board=all_teachers.order_by('-love_num')[:2]
-    return render(request,'orgs/teachers-list.html',{'all_teachers':all_teachers,'teacher_board':teacher_board,'current_page':current_page,'sort':sort})
+    return render(request,'orgs/teachers-list.html',{'all_teachers':all_teachers,'teacher_board':teacher_board,'current_page':current_page,'sort':sort,'keyword':keyword})
 
 def teacher_detail(request,teacher_id):
     '''这是教师详情页的视图'''
